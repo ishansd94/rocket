@@ -13,25 +13,96 @@ class BearerAuth(requests.auth.AuthBase):
         r.headers["authorization"] = "Bearer " + self.token
         return r
 
+# Ticket Dict
+# {
+#   "ticket_id" : "COPS-XXXX",
+#   "stage": "in-progess",
+#   "description": "description of the Ticket",
+#   "add_details" : True | False
+# }
+#Incidents = [Ticket]
+#In_Progess = [Ticket]
+#completed = [Ticket]
 
-def automated_notification():
+
+def automated_notification(from_shift, to_shift, incidents, in_progess, completed):
+
+    nofication_json = {
+        "channel": "#test",
+        "username": "HandOff Bot",
+        "blocks": [
+                    {
+                        "type": "section",
+                        "text": {
+                            "type": "mrkdwn",
+                            "text": "@here Shift Handoff from *"+from_shift+"* to *"+to_shift+"*"
+                        }
+                    },
+                {
+                        "type": "divider"
+                        },
+            {
+                        "type": "section",
+                        "text": {
+                            "type": "mrkdwn",
+                            "text": ":bangbang:* Incident Tickets (P1,P2,P3):*"
+                        }
+            },
+            # incident list 3
+            {
+                        "type": "section",
+                        "fields": [
+                        ]
+            },
+            {
+                        "type": "section",
+                        "text": {
+                            "type": "mrkdwn",
+                            "text": ":warning:* Immediate Attention Required Tickets:*"
+                        }
+            },
+            # in progress list 5
+            {
+                        "type": "section",
+                        "fields": [
+
+                        ]
+            },
+            {
+                        "type": "section",
+                        "text": {
+                            "type": "mrkdwn",
+                            "text": ":heavy_check_mark:* Changes/Releases Carried out during Shift:*"
+                        }
+            },
+            # completed list 7
+            {
+                        "type": "section",
+                        "fields": [
+                        ]
+            },
+            {
+                        "type": "divider"
+            },
+            {
+                        "type": "section",
+                        "text": {
+                            "type": "mrkdwn",
+                            "text": "*Detailed View of Open Tickets*"
+                        }
+            },
+            # Details 10 - *
+
+        ]
+    }
     response = requests.post(
         'https://slack.com/api/chat.postMessage',
-        json={
-            "channel": "#test",
-            "username": "SLACK BOT",
-            "attachments": [
-                {
-                    "text": "Your one stop shop for all support inquiries for Server, Database, Application Engineering, Storage, Data Center Services, Backups, and Network Operations. If you require assistance, please post your ticket number. \n Example:- `TicketID:- COPS-4567`"
-                }
-            ],
-            "text": "*Welcome to Hosting & Network Operations*",
-        },
+        json=nofication_json,
         auth=BearerAuth(TOKEN)
     )
 
     json_response = response.json()
-    print json_response
+    print(json_response)
 
 
-automated_notification()
+automated_notification("Morning","Evening",[],[],[])
