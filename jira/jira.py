@@ -58,7 +58,8 @@ def print_report(args):
             incidents.append(info)
 
     # format the json according to slack
-    return inprogress, done, incidents
+    # {"incidents": [], "inprogress": [], "done": []}
+    return {"inprogress": inprogress, "done": done, "incidents": incidents}
 
 
 def get_ticket_id(ticket):
@@ -84,12 +85,32 @@ def generate_ticket_details(ticket):
             "type": "section",
             "text": {
                 "type": "mrkdwn",
-                "text": "*{}*\n*Description:* {}\n*Stage:* {}".format(ticket["ticket_id"], ticket["description"],
-                                                                      ticket["stage"])
+                "text": "*{}*\n*Description:* {}\n*Priority:* {}\n*Stage:* {}".format(ticket["ticket_id"],
+                                                                                      ticket["description"],
+                                                                                      ticket["priority"],
+                                                                                      ticket["stage"])
             }}
 
 
-def formatted_notification(from_shift, to_shift, incidents, in_progess, completed):
+def get_to_shift_from(from_shift):
+    to_shift = ''
+    if from_shift == 'Morning':
+        to_shift = 'Evening'
+    elif from_shift == 'Evening':
+        to_shift = 'Night'
+    else:
+        to_shift = 'Morning'
+
+    return to_shift
+
+
+# jira.formatted_notification("Morning", {"incidents": [], "inprogress": [], "done": []})
+
+def formatted_notification(from_shift, tickets):
+    to_shift = get_to_shift_from(from_shift)
+    incidents = tickets["incidents"]
+    in_progess = tickets["inprogress"]
+    completed = tickets["done"]
     details = list(map(generate_ticket_details, in_progess))
     notification_json = {
         "channel": os.getenv("SLACK_POST_CHANNEL_ID"),
