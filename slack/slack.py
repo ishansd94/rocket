@@ -1,7 +1,7 @@
 import requests
 import json
 import re
-import time
+from datetime import time, timedelta, datetime
 import os
 
 from helpers import utils
@@ -16,11 +16,14 @@ responses = []
 
 url = 'https://slack.com/api/conversations.history'
 
+datetime_now = datetime.now()
+datetime_earlier_shift = datetime_now - timedelta(hours=10)
+
 params = {
         'token': os.getenv("SLACK_TOKEN"),
         'channel': os.getenv("SLACK_READ_CHANNEL_ID"),
-        'latest': time.time(),
-        'oldest': '1569892525'
+        'latest': datetime.timestamp(datetime_now),
+        'oldest': datetime.timestamp(datetime_earlier_shift)
 }
 
 def get_messages():
@@ -79,4 +82,5 @@ def formatted_notification(nofication_json):
         auth=BearerAuth(os.getenv("SLACK_TOKEN"))
     )
 
-    print(response.text)
+    if response.status_code != 200:
+        print("error posting handoff to slack")

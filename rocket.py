@@ -4,27 +4,61 @@ from helpers import utils
 from jira import jira
 from notifications import notifications
 
-
 import re
+import time
 
-messages = slack.get_messages()
+def filter_messages():
+    
+    print("collecting messages")
 
-print(messages)
+    messages = slack.get_messages()
 
-jira_tickets = []
+    jira_tickets = []
 
-for r in messages:
+    print("processing tickets from messages")
 
-    tickets = re.findall(r"(COPS-[0-9]*)", r)
+    for r in messages:
 
-    for ticket in tickets:
-        jira_tickets.append(ticket)
+        tickets = re.findall(r"(COPS-[0-9]*)", r)
 
-jira_tickets = utils.unique(jira_tickets)
-print(jira_tickets)
+        for ticket in tickets:
+            jira_tickets.append(ticket)
 
-tickets = jira.print_report(jira_tickets)
-notification_json = jira.formatted_notification("Morning", tickets)
-slack.formatted_notification(notification_json)
+    return utils.unique(jira_tickets)
+
+def handoff():
+    # schedule.every().day.at("06:00").do(job)
+    time.sleep(60)
+
+    print("running handoff for morning")
+
+    tkts = jira.get_tickets_status(filter_messages())
+
+    print("sending handoff to slack")
+
+    slack.formatted_notification(jira.formatted_notification("Morning", tkts))
+    
+    # schedule.every().day.at("13:00").do(job)
+    time.sleep(60)
+
+    print("running handoff for evening")
+
+    tkts = jira.get_tickets_status(filter_messages())
+
+    print("sending handoff to slack")
+
+    slack.formatted_notification(jira.formatted_notification("Evening", tkts))
+
+    # schedule.every().day.at("21:30").do(job)
+    time.sleep(60)
+
+    print("running handoff for night")
+
+    tkts = jira.get_tickets_status(filter_messages())
+
+    print("sending handoff to slack")
+
+    slack.formatted_notification(jira.formatted_notification("Night", tkts))
 
 
+handoff()

@@ -36,7 +36,7 @@ def check_incident_or_not(issue):
         return False
 
 
-def print_report(args):
+def get_tickets_status(args):
     inprogress = []
     done = []
     incidents = []
