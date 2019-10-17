@@ -12,11 +12,17 @@ jira = Jira(url=jira_host, username=jira_username, password=jira_password)
 
 def jira_status(issue):
     data = jira.issue(issue)
+    if 'priority' in data['fields'].keys():
+        priority = data['fields']['priority']
+    else:
+        priority = 'None'
+
     info = {
         "ticket_id": data['key'],
         "description": data['fields']['summary'],
         "stage": data['fields']['status']['statusCategory']['name'],
-        "priority": data['fields']['priority']['name']
+        "priority": priority,
+        "url": jira_host+'/browse/'+data['key'],
     }
     return info
 
@@ -34,6 +40,7 @@ def get_tickets_status(args):
     inprogress = []
     done = []
     incidents = []
+    open = []
     other = []
     for ticket in args:
         info = jira_status(ticket)
@@ -45,6 +52,10 @@ def get_tickets_status(args):
         elif info["stage"] == "Done":
             info["add_details"] = False
             done.append(info)
+
+        elif info["stage"] == "To Do":
+            info["add_details"] = True
+            open.append(info)
         else:
             info["add_details"] = False
             other.append(info)
@@ -59,7 +70,7 @@ def get_tickets_status(args):
 
     # format the json according to slack
     # {"incidents": [], "inprogress": [], "done": []}
-    return {"inprogress": inprogress, "done": done, "incidents": incidents}
+    return {"inprogress": inprogress, "done": done, "incidents": incidents, "open": open}
 
 
 def get_ticket_id(ticket):
@@ -85,10 +96,11 @@ def generate_ticket_details(ticket):
             "type": "section",
             "text": {
                 "type": "mrkdwn",
-                "text": "*{}*\n*Description:* {}\n*Priority:* {}\n*Stage:* {}".format(ticket["ticket_id"],
+                "text": "*{}*\n*Description:* {}\n*Priority:* {}\n*Stage:* {}\n*URL:* {}".format(ticket["ticket_id"],
                                                                                       ticket["description"],
                                                                                       ticket["priority"],
-                                                                                      ticket["stage"])
+                                                                                      ticket["stage"],
+                                                                                      ticket["url"])
             }}
 
 
@@ -109,7 +121,8 @@ def get_to_shift_from(from_shift):
 def formatted_notification(from_shift, tickets):
     to_shift = get_to_shift_from(from_shift)
     incidents = tickets["incidents"]
-    in_progess = tickets["inprogress"]
+    open = tickets["open"]
+    in_progess = tickets["inprogress"]+open
     completed = tickets["done"]
     details = list(map(generate_ticket_details, in_progess))
     notification_json = {
