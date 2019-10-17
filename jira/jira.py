@@ -24,7 +24,7 @@ def jira_status(issue):
 def check_incident_or_not(issue):
     labels = jira.issue_field_value(issue, 'labels')
     for label in labels:
-        print label
+
         if label == 'INCIDENT':
             return True
         return False
@@ -37,7 +37,6 @@ def print_report(args):
     other = []
     for ticket in args:
         info = jira_status(ticket)
-        print info["stage"]
 
         if info["stage"] == "In Progress":
             info["add_details"] = True
@@ -93,7 +92,7 @@ def generate_ticket_details(ticket):
 def formatted_notification(from_shift, to_shift, incidents, in_progess, completed):
     details = list(map(generate_ticket_details, in_progess))
     notification_json = {
-        "channel": "#test",
+        "channel": os.getenv("SLACK_POST_CHANNEL_ID"),
         "username": "SLACK BOT",
         "blocks": [
             {
