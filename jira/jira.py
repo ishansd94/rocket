@@ -1,35 +1,160 @@
 from atlassian import Jira
+import requests
 
 import os
 
+jira_host = os.getenv("JIRA_HOST")
+jira_username = os.getenv("JIRA_USERNAME")
+jira_password = os.getenv("JIRA_PASSWORD")
+
+jira = Jira(url=jira_host, username=jira_username, password=jira_password)
+
+
 def jira_status(issue):
-
-    jira_host=os.getenv("JIRA_HOST")
-    jira_username=os.getenv("JIRA_USERNAME")
-    jira_password=os.getenv("JIRA_PASSWORD")
-
-    jira = Jira(url=jira_host, username=jira_username, password=jira_password)
-
     data = jira.issue(issue)
     info = {
-        "ticket" : data['key'],
-        "summary": data['fields']['summary'],
-        "status": data['fields']['status']['statusCategory']['name'],
+        "ticket_id": data['key'],
+        "description": data['fields']['summary'],
+        "stage": data['fields']['status']['statusCategory']['name'],
         "priority": data['fields']['priority']['name']
     }
     return info
 
 
+def check_incident_or_not(issue):
+    labels = jira.issue_field_value(issue, 'labels')
+    for label in labels:
+        print label
+        if label == 'INCIDENT':
+            return True
+        return False
+
+
 def print_report(args):
     inprogress = []
-    closed = []
+    done = []
+    incidents = []
+    other = []
     for ticket in args:
         info = jira_status(ticket)
-        if info["status"] == "In Progress":
+        print info["stage"]
+
+        if info["stage"] == "In Progress":
+            info["add_details"] = True
             inprogress.append(info)
+
+        elif info["stage"] == "Done":
+            info["add_details"] = False
+            done.append(info)
         else:
-            closed.append(info)
+            info["add_details"] = False
+            other.append(info)
+
+        if check_incident_or_not(ticket):
+            if info["stage"] == "In Progress":
+                info["add_details"] = True
+            else:
+                info["add_details"] = False
+
+            incidents.append(info)
 
     # format the json according to slack
-    print(inprogress,closed)
+    return inprogress, done, incidents
 
+
+def get_ticket_id(ticket):
+    return {
+        "type": "plain_text",
+        "text": ticket["ticket_id"]
+    }
+
+
+def get_ticket_ids(tickets):
+    if len(tickets) == 0:
+        return [{
+            "type": "mrkdwn",
+            "text": "*None*"
+        }]
+    else:
+        return list(map(get_ticket_id, tickets))
+
+
+def generate_ticket_details(ticket):
+    if ticket["add_details"]:
+        return {
+            "type": "section",
+            "text": {
+                "type": "mrkdwn",
+                "text": "*{}*\n*Description:* {}\n*Stage:* {}".format(ticket["ticket_id"], ticket["description"],
+                                                                      ticket["stage"])
+            }}
+
+
+def formatted_notification(from_shift, to_shift, incidents, in_progess, completed):
+    details = list(map(generate_ticket_details, in_progess))
+    notification_json = {
+        "channel": "#test",
+        "username": "SLACK BOT",
+        "blocks": [
+            {
+                "type": "section",
+                "text": {
+                    "type": "mrkdwn",
+                    "text": "@here Shift Handoff from *{}* to *{}*".format(from_shift, to_shift)
+                }
+            },
+            {
+                "type": "divider"
+            },
+            {
+                "type": "section",
+                "text": {
+                    "type": "mrkdwn",
+                    "text": ":bangbang:* Incident Tickets (P1,P2,P3):*"
+                }
+            },
+            # incident list 3
+            {
+                "type": "section",
+                "fields": get_ticket_ids(incidents)
+            },
+            {
+                "type": "section",
+                "text": {
+                    "type": "mrkdwn",
+                    "text": ":warning:* Immediate Attention Required Tickets:*"
+                }
+            },
+            # in progress list 5
+            {
+                "type": "section",
+                "fields": get_ticket_ids(in_progess)
+            },
+            {
+                "type": "section",
+                "text": {
+                    "type": "mrkdwn",
+                    "text": ":heavy_check_mark:* Changes/Releases Carried out during Shift:*"
+                }
+            },
+            # completed list 7
+            {
+                "type": "section",
+                "fields": get_ticket_ids(completed)
+            },
+            {
+                "type": "divider"
+            },
+            {
+                "type": "section",
+                "text": {
+                    "type": "mrkdwn",
+                    "text": "*Detailed View of Open Tickets*"
+                }
+            },
+            # Details 10 - *
+
+        ]
+    }
+    notification_json["blocks"] = notification_json["blocks"] + list(details)
+    return notification_json
