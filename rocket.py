@@ -9,9 +9,13 @@ import time
 
 def filter_messages():
     
+    print("collecting messages")
+
     messages = slack.get_messages()
 
     jira_tickets = []
+
+    print("processing tickets from messages")
 
     for r in messages:
 
@@ -30,6 +34,8 @@ def handoff():
 
     tkts = jira.get_tickets_status(filter_messages())
 
+    print("sending handoff to slack")
+
     slack.formatted_notification(jira.formatted_notification("Morning", tkts))
     
     # schedule.every().day.at("13:00").do(job)
@@ -39,6 +45,8 @@ def handoff():
 
     tkts = jira.get_tickets_status(filter_messages())
 
+    print("sending handoff to slack")
+
     slack.formatted_notification(jira.formatted_notification("Evening", tkts))
 
     # schedule.every().day.at("21:30").do(job)
@@ -47,6 +55,8 @@ def handoff():
     print("running handoff for night")
 
     tkts = jira.get_tickets_status(filter_messages())
+
+    print("sending handoff to slack")
 
     slack.formatted_notification(jira.formatted_notification("Night", tkts))
 
