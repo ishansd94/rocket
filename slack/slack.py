@@ -81,3 +81,6 @@ def formatted_notification(nofication_json):
         json=nofication_json,
         auth=BearerAuth(os.getenv("SLACK_TOKEN"))
     )
+
+    if response.status_code != 200:
+        print("error posting handoff to slack")

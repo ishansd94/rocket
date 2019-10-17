@@ -24,7 +24,7 @@ def filter_messages():
 
 def handoff():
     # schedule.every().day.at("06:00").do(job)
-    time.sleep(120)
+    time.sleep(60)
 
     print("running handoff for morning")
 
@@ -33,7 +33,7 @@ def handoff():
     slack.formatted_notification(jira.formatted_notification("Morning", tkts))
     
     # schedule.every().day.at("13:00").do(job)
-    time.sleep(120)
+    time.sleep(60)
 
     print("running handoff for evening")
 
@@ -42,7 +42,7 @@ def handoff():
     slack.formatted_notification(jira.formatted_notification("Evening", tkts))
 
     # schedule.every().day.at("21:30").do(job)
-    time.sleep(120)
+    time.sleep(60)
 
     print("running handoff for night")
 
