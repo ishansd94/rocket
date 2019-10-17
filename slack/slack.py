@@ -81,5 +81,3 @@ def formatted_notification(nofication_json):
         json=nofication_json,
         auth=BearerAuth(os.getenv("SLACK_TOKEN"))
     )
-
-    print(response.text)

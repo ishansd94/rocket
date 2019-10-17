@@ -35,7 +35,7 @@ def handoff():
     # schedule.every().day.at("13:00").do(job)
     time.sleep(120)
 
-    print("running handoff for morning")
+    print("running handoff for evening")
 
     tkts = jira.get_tickets_status(filter_messages())
 
@@ -44,7 +44,7 @@ def handoff():
     # schedule.every().day.at("21:30").do(job)
     time.sleep(120)
 
-    print("running handoff for morning")
+    print("running handoff for night")
 
     tkts = jira.get_tickets_status(filter_messages())
 
