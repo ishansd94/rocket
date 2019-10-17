@@ -53,7 +53,7 @@ def automated_notification():
     response = requests.post(
         'https://slack.com/api/chat.postMessage',
         json={
-            "channel": "#test",
+            "channel": os.getenv("SLACK_READ_CHANNEL_ID"),
             "username": "SLACK BOT",
             "attachments": [
                 {
@@ -78,5 +78,5 @@ def formatted_notification(nofication_json):
         json=nofication_json,
         auth=BearerAuth(os.getenv("SLACK_TOKEN"))
     )
-    json_response = response.json()
-    print json_response
+
+    print(response.text)
