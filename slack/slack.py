@@ -70,3 +70,13 @@ def automated_notification():
     else:
         print("Failed to send Automated notification sent..")
         print(response.text)
+
+
+def formatted_notification(nofication_json):
+    response = requests.post(
+        'https://slack.com/api/chat.postMessage',
+        json=nofication_json,
+        auth=BearerAuth(os.getenv("SLACK_TOKEN"))
+    )
+    json_response = response.json()
+    print json_response

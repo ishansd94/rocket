@@ -19,7 +19,8 @@ for r in messages:
         jira_tickets.append(ticket)
 
 jira_tickets = utils.unique(jira_tickets)
-
-print(jira_tickets)
+inprogress, done, incidents = jira.print_report(jira_tickets)
+notification_json = jira.formatted_notification("Morning", "Evening", incidents, inprogress, done)
+slack.notification(notification_json)
 
 
