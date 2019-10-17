@@ -1,5 +1,6 @@
 from slack import slack
 from helpers import utils
+from jira import jira
 import re
 
 SLACK_CHANNEL_ID=""
@@ -17,4 +18,7 @@ for r in messages:
 
 jira_tickets = utils.unique(jira_tickets)
 
-print(jira_tickets)
+jira.print_report(jira_tickets)
+
+slack.automated_notification()
+
