@@ -1,11 +1,15 @@
 from atlassian import Jira
 
-USERNAME = ''
-PASSWORD = ''
-jira = Jira(url='https://agile-jira.pearson.com', username=USERNAME, password=PASSWORD)
-
+import os
 
 def jira_status(issue):
+
+    jira_host=os.getenv("JIRA_HOST")
+    jira_username=os.getenv("JIRA_USERNAME")
+    jira_password=os.getenv("JIRA_PASSWORD")
+
+    jira = Jira(url=jira_host, username=jira_username, password=jira_password)
+
     data = jira.issue(issue)
     info = {
         "ticket" : data['key'],

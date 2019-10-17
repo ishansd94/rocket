@@ -1,2 +1,4 @@
 pysnow
 atlassian-python-api
+python-dotenv
+schedule
