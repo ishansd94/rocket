@@ -13,7 +13,7 @@ jira = Jira(url=jira_host, username=jira_username, password=jira_password)
 def jira_status(issue):
     data = jira.issue(issue)
     if 'priority' in data['fields'].keys():
-        priority = data['fields']['priority']
+        priority = data['fields']['priority']['name']
     else:
         priority = 'None'
 
